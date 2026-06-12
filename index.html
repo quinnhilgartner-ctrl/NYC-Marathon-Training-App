@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>NYC Marathon Training Plan</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#14213d" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Marathon" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<style>
+  :root {
+    --bg: #0e1118;
+    --card: #161b26;
+    --card-hover: #1c2230;
+    --border: #262e40;
+    --text: #e8ecf4;
+    --muted: #8a93a6;
+    --orange: #ff6b35;
+    --blue: #2e86de;
+    --green: #2ecc71;
+    --yellow: #f1c40f;
+    --purple: #9b59b6;
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+  .container { max-width: 880px; margin: 0 auto; padding: 0 20px; }
+
+  header {
+    background: linear-gradient(135deg, #14213d 0%, #1a2a4a 60%, #233a63 100%);
+    border-bottom: 1px solid var(--border);
+    padding: calc(36px + env(safe-area-inset-top)) 0 28px;
+    margin-bottom: 24px;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  header h1 span { color: var(--orange); }
+  header .sub { color: var(--muted); margin-top: 4px; font-size: 14px; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .stat .value { font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .stat .value small { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+  .progress-bar-wrap {
+    margin-top: 18px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), #ffa552);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .week {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .week.current { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+  .week-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .week-header:hover { background: var(--card-hover); }
+  .week-title { display: flex; align-items: center; gap: 12px; }
+  .week-num {
+    background: var(--blue);
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    border-radius: 8px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  .week-num.cutback { background: var(--purple); }
+  .week-num.taper { background: var(--yellow); color: #1a1a1a; }
+  .week-num.peak { background: var(--orange); }
+  .week-num.race { background: var(--green); }
+  .week-dates { font-size: 13px; color: var(--muted); }
+  .week-meta { display: flex; align-items: center; gap: 14px; }
+  .week-long { font-size: 13px; font-weight: 600; color: var(--orange); white-space: nowrap; }
+  .week-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .week-check { color: var(--green); font-weight: 700; font-size: 14px; }
+  .chev { color: var(--muted); transition: transform 0.2s; font-size: 12px; }
+  .week.open .chev { transform: rotate(90deg); }
+
+  .week-body { display: none; border-top: 1px solid var(--border); }
+  .week.open .week-body { display: block; }
+
+  .day {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .day:last-child { border-bottom: none; }
+  .day:hover { background: var(--card-hover); }
+  .day.done { opacity: 0.55; }
+  .day.done .day-title { text-decoration: line-through; }
+  .day.today { background: rgba(255,107,53,0.07); border-left: 3px solid var(--orange); padding-left: 17px; }
+
+  .checkbox {
+    width: 22px; height: 22px;
+    min-width: 22px;
+    border: 2px solid var(--muted);
+    border-radius: 7px;
+    margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .day.done .checkbox { background: var(--green); border-color: var(--green); }
+  .checkbox svg { opacity: 0; width: 13px; height: 13px; }
+  .day.done .checkbox svg { opacity: 1; }
+
+  .day-content { flex: 1; }
+  .day-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .day-date { font-size: 12px; color: var(--muted); min-width: 86px; }
+  .day-title { font-weight: 600; font-size: 14px; }
+  .day-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 2px 8px; border-radius: 99px;
+  }
+  .tag.long { background: rgba(255,107,53,0.15); color: var(--orange); }
+  .tag.recovery { background: rgba(46,204,113,0.12); color: var(--green); }
+  .tag.easy { background: rgba(46,134,222,0.15); color: #6db3f2; }
+  .tag.track { background: rgba(241,196,15,0.12); color: var(--yellow); }
+  .tag.legs { background: rgba(155,89,182,0.15); color: #c39bd3; }
+  .tag.arms { background: rgba(26,188,156,0.12); color: #48c9b0; }
+  .tag.race { background: rgba(46,204,113,0.2); color: var(--green); }
+
+  .race-card {
+    background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+    border: 1px solid #22c55e;
+  }
+  .race-card .week-header { cursor: default; }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .controls h2 { font-size: 18px; }
+  .btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { color: var(--text); border-color: var(--muted); }
+  .btn.danger:hover { color: #e74c3c; border-color: #e74c3c; }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>🏃 NYC Marathon <span>Training Plan</span></h1>
+    <div class="sub">18 weeks · June 28 – October 31, 2026 · Race Day: Sunday, November 1, 2026</div>
+    <div class="stats">
+      <div class="stat"><div class="label">Workouts Done</div><div class="value" id="stat-done">0 <small>/ 126</small></div></div>
+      <div class="stat"><div class="label">Plan Complete</div><div class="value" id="stat-pct">0%</div></div>
+      <div class="stat"><div class="label">Long Run Miles</div><div class="value" id="stat-miles">0 <small>/ 218 mi</small></div></div>
+      <div class="stat"><div class="label">Days to Race</div><div class="value" id="stat-countdown">—</div></div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="controls">
+    <h2>Training Schedule</h2>
+    <div>
+      <button class="btn" id="btn-expand">Expand All</button>
+      <button class="btn" id="btn-collapse">Collapse All</button>
+      <button class="btn danger" id="btn-reset">Reset Progress</button>
+    </div>
+  </div>
+  <div id="plan"></div>
+  <footer>Progress is saved automatically in your browser. Good luck out there! 🗽</footer>
+</div>
+
+<script>
+const START_DATE = new Date(2026, 5, 28); // Sunday June 28, 2026
+const RACE_DATE = new Date(2026, 10, 1);  // Sunday November 1, 2026
+const STORAGE_KEY = "nycMarathonPlan2026";
+
+const longRuns = [6, 7, 8, 9, 10, 11, 12, 9, 14, 16, 12, 18, 20, 14, 22, 16, 10, 3];
+const easyRuns = [3, 3, 4, 4, 4, 5, 5, 4, 5, 6, 5, 6, 6, 5, 6, 5, 4, 2];
+
+const trackWorkouts = [
+  "6 × 400m @ 5K pace · 200m jog recovery",
+  "8 × 400m @ 5K pace · 200m jog recovery",
+  "4 × 800m @ 10K pace · 400m jog recovery",
+  "5 × 800m @ 10K pace · 400m jog recovery",
+  "3 × 1 mile @ tempo pace · 3 min rest",
+  "6 × 800m Yasso 800s · 400m jog recovery",
+  "10 × 400m @ 5K pace · 200m jog recovery",
+  "4 mile tempo run (cutback week — keep it controlled)",
+  "7 × 800m Yasso 800s · 400m jog recovery",
+  "4 × 1 mile @ tempo pace · 3 min rest",
+  "5 mile tempo run (cutback week)",
+  "8 × 800m Yasso 800s · 400m jog recovery",
+  "5 × 1 mile @ goal marathon pace · 2 min rest",
+  "6 × 400m @ 5K pace (cutback — stay sharp)",
+  "10 × 800m Yasso 800s · 400m jog recovery",
+  "4 × 800m @ 10K pace (taper begins — reduced volume)",
+  "3 × 800m @ marathon pace · light & relaxed",
+  "4 × 400m strides @ race effort · race week, stay loose"
+];
+
+const legDayA = [
+  "Back squats 4×8 · walking lunges 3×12 · Romanian deadlifts 3×10 · calf raises 3×15",
+  "Back squats 4×8 · Bulgarian split squats 3×10 · leg curls 3×12 · calf raises 3×15",
+  "Goblet squats 4×10 · step-ups 3×12 · glute bridges 3×15 · calf raises 3×15"
+];
+const legDayB = [
+  "Deadlifts 4×6 · step-ups 3×12 · hamstring curls 3×12 · hip thrusts 3×12",
+  "Deadlifts 4×6 · single-leg RDLs 3×10 · leg press 3×12 · hip abductions 3×15",
+  "Trap-bar deadlifts 4×8 · lateral lunges 3×10 · Nordic curls 3×8 · hip thrusts 3×12"
+];
+const armDays = [
+  "Bench press 4×8 · rows 4×10 · overhead press 3×10 · bicep curls 3×12 · tricep dips 3×12",
+  "Pull-ups 4×max · incline press 4×10 · lateral raises 3×12 · hammer curls 3×12 · skullcrushers 3×12",
+  "Push-ups 4×15 · dumbbell rows 4×10 · Arnold press 3×10 · curls 3×12 · tricep pushdowns 3×12"
+];
+
+const weekLabels = {
+  8: "cutback", 11: "cutback", 14: "cutback",
+  15: "peak",
+  16: "taper", 17: "taper", 18: "taper"
+};
+
+function fmtDate(d) {
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+function addDays(d, n) {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+}
+function sameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function buildPlan() {
+  const weeks = [];
+  for (let w = 0; w < 18; w++) {
+    const weekStart = addDays(START_DATE, w * 7);
+    const lr = longRuns[w];
+    const er = easyRuns[w];
+    const isTaper = w >= 15;
+    const days = [
+      { tag: "recovery", title: "Recovery Day", desc: w === 0 ? "Rest, stretch, foam roll. Ease into the program." : "Rest, stretch, foam roll. Optional 20–30 min walk or easy swim." },
+      { tag: "easy", title: `Easy Run · ${er} mi`, desc: "Conversational pace. Keep heart rate low — this builds your aerobic base." },
+      { tag: "legs", title: "Leg Day (Strength A)", desc: legDayA[w % 3] + (isTaper ? " — reduce weight ~30% during taper" : "") },
+      { tag: "track", title: "Track Workout", desc: trackWorkouts[w] + " · 1 mi warm-up & cool-down" },
+      { tag: "legs", title: "Leg Day (Strength B)", desc: legDayB[w % 3] + (isTaper ? " — reduce weight ~30% during taper" : "") },
+      { tag: "arms", title: "Arm Workout", desc: armDays[w % 3] },
+      { tag: "long", title: w === 17 ? `Shakeout Run · ${lr} mi` : `Long Run · ${lr} mi`, desc: w === 17 ? "Very easy pre-race shakeout. Lay out your race kit tonight!" : longRunNote(w, lr) }
+    ];
+    weeks.push({ weekStart, days, longMiles: lr });
+  }
+  return weeks;
+}
+
+function longRunNote(w, lr) {
+  if (weekLabels[w + 1] === "cutback") return "Cutback week — easy effort, let the body absorb the training.";
+  if (w === 14) return "Peak long run! Practice race-day fueling, gear, and pacing.";
+  if (lr >= 16) return "Easy pace, ~60–90 sec slower than goal marathon pace. Practice fueling every 45 min.";
+  if (lr >= 10) return "Easy conversational pace. Start practicing mid-run fueling.";
+  return "Easy conversational pace. Saturday morning — beat the heat, hydrate well.";
+}
+
+const weeks = buildPlan();
+const totalWorkouts = 18 * 7;
+const totalLongMiles = longRuns.reduce((a, b) => a + b, 0);
+
+let state = {};
+try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { state = {}; }
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function render() {
+  const today = new Date();
+  const planEl = document.getElementById("plan");
+  planEl.innerHTML = "";
+
+  let currentWeekIdx = -1;
+  weeks.forEach((wk, wi) => {
+    const weekEnd = addDays(wk.weekStart, 6);
+    if (today >= wk.weekStart && today <= addDays(weekEnd, 1)) currentWeekIdx = wi;
+  });
+
+  weeks.forEach((wk, wi) => {
+    const weekEl = document.createElement("div");
+    weekEl.className = "week";
+    const label = weekLabels[wi + 1];
+    const doneCount = wk.days.filter((_, di) => state[`w${wi}d${di}`]).length;
+    const isCurrent = wi === currentWeekIdx;
+    if (isCurrent) weekEl.classList.add("current", "open");
+
+    const weekEnd = addDays(wk.weekStart, 6);
+    const header = document.createElement("div");
+    header.className = "week-header";
+    header.innerHTML = `
+      <div class="week-title">
+        <span class="week-num ${label || ""}">WEEK ${wi + 1}${label ? " · " + label.toUpperCase() : ""}</span>
+        <span class="week-dates">${fmtDate(wk.weekStart)} – ${fmtDate(weekEnd)}</span>
+      </div>
+      <div class="week-meta">
+        <span class="week-long">${wi === 17 ? "Shakeout" : "Long run"}: ${wk.longMiles} mi</span>
+        <span class="week-count">${doneCount === 7 ? "" : doneCount + "/7"}</span>
+        ${doneCount === 7 ? '<span class="week-check">✓ Complete</span>' : ""}
+        <span class="chev">▶</span>
+      </div>`;
+    header.addEventListener("click", () => weekEl.classList.toggle("open"));
+    weekEl.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "week-body";
+    wk.days.forEach((day, di) => {
+      const date = addDays(wk.weekStart, di);
+      const key = `w${wi}d${di}`;
+      const dayEl = document.createElement("div");
+      dayEl.className = "day" + (state[key] ? " done" : "") + (sameDay(date, today) ? " today" : "");
+      dayEl.innerHTML = `
+        <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="day-content">
+          <div class="day-top">
+            <span class="day-date">${fmtDate(date)}</span>
+            <span class="tag ${day.tag}">${day.tag === "long" ? "long run" : day.tag}</span>
+            <span class="day-title">${day.title}</span>
+          </div>
+          <div class="day-desc">${day.desc}</div>
+        </div>`;
+      dayEl.addEventListener("click", () => {
+        state[key] = !state[key];
+        if (!state[key]) delete state[key];
+        save();
+        render();
+      });
+      body.appendChild(dayEl);
+    });
+    weekEl.appendChild(body);
+    planEl.appendChild(weekEl);
+  });
+
+  // Race day card
+  const raceEl = document.createElement("div");
+  raceEl.className = "week race-card";
+  const raceDone = state["race"];
+  raceEl.innerHTML = `
+    <div class="day ${raceDone ? "done" : ""}" style="border-bottom:none; padding: 18px 20px;">
+      <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="day-content">
+        <div class="day-top">
+          <span class="day-date">Sun, Nov 1</span>
+          <span class="tag race">race day</span>
+          <span class="day-title" style="font-size:16px;">🗽 NYC MARATHON · 26.2 miles</span>
+        </div>
+        <div class="day-desc">Trust your training. Start slow, finish strong. See you in Central Park! 🎉</div>
+      </div>
+    </div>`;
+  raceEl.querySelector(".day").addEventListener("click", () => {
+    state["race"] = !state["race"];
+    if (!state["race"]) delete state["race"];
+    save();
+    render();
+  });
+  planEl.appendChild(raceEl);
+
+  // Stats
+  let done = 0, milesDone = 0;
+  weeks.forEach((wk, wi) => {
+    wk.days.forEach((_, di) => { if (state[`w${wi}d${di}`]) done++; });
+    if (state[`w${wi}d6`]) milesDone += wk.longMiles;
+  });
+  const pct = Math.round((done / totalWorkouts) * 100);
+  document.getElementById("stat-done").innerHTML = `${done} <small>/ ${totalWorkouts}</small>`;
+  document.getElementById("stat-pct").textContent = pct + "%";
+  document.getElementById("stat-miles").innerHTML = `${milesDone} <small>/ ${totalLongMiles} mi</small>`;
+  document.getElementById("progress-bar").style.width = pct + "%";
+
+  const daysLeft = Math.ceil((RACE_DATE - today) / 86400000);
+  document.getElementById("stat-countdown").textContent = daysLeft > 0 ? daysLeft : (daysLeft === 0 ? "TODAY! 🎉" : "Done! 🏅");
+}
+
+document.getElementById("btn-expand").addEventListener("click", () =>
+  document.querySelectorAll(".week").forEach(w => w.classList.add("open")));
+document.getElementById("btn-collapse").addEventListener("click", () =>
+  document.querySelectorAll(".week").forEach(w => w.classList.remove("open")));
+document.getElementById("btn-reset").addEventListener("click", () => {
+  if (confirm("Reset all progress? This cannot be undone.")) {
+    state = {};
+    save();
+    render();
+  }
+});
+
+render();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+</body>
+</html>
