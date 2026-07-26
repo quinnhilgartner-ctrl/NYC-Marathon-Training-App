@@ -21,18 +21,20 @@ Open `index.html` in any browser — no install required. Click any workout to c
 
 | Wk | Mi | Wk | Mi | Wk | Mi |
 |----|----|----|----|----|----|
-| 1  | 6  | 7  | 12 | 13 | 20 |
-| 2  | 7  | 8  | 9* | 14 | 14* |
+| 1  | 6  | 7  | 11 | 13 | 20 |
+| 2  | 7  | 8  | 12 | 14 | 14* |
 | 3  | 8  | 9  | 14 | 15 | **22 (peak)** |
-| 4  | 9  | 10 | 16 | 16 | 16 (taper) |
-| 5  | 10 | 11 | 12* | 17 | 10 (taper) |
-| 6  | 11 | 12 | 18 | 18 | 3 (shakeout) |
+| 4  | — (missed) | 10 | 16 | 16 | 16 (taper) |
+| 5  | 9  | 11 | 12* | 17 | 10 (taper) |
+| 6  | 10 | 12 | 18 | 18 | 3 (shakeout) |
 
 \* cutback week
 
+Week 4 (Jul 19–25) was missed; the schedule was re-sequenced and one cutback week removed so the buildup still peaks at 22 mi in week 15 with a 3-week taper.
+
 ## Features
 
-- Check off all 126 workouts + race day
+- Check off all 119 workouts + race day
 - Auto-saves progress (localStorage)
 - Highlights the current week and today's workout
 - Progress stats: workouts done, % complete, long-run miles, race countdown

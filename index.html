@@ -111,6 +111,7 @@
   .week-num.taper { background: var(--yellow); color: #1a1a1a; }
   .week-num.peak { background: var(--orange); }
   .week-num.race { background: var(--green); }
+  .week-num.missed { background: #6b7280; }
   .week-dates { font-size: 13px; color: var(--muted); }
   .week-meta { display: flex; align-items: center; gap: 14px; }
   .week-long { font-size: 13px; font-weight: 600; color: var(--orange); white-space: nowrap; }
@@ -205,9 +206,9 @@
     <h1>🏃 NYC Marathon <span>Training Plan</span></h1>
     <div class="sub">18 weeks · June 28 – October 31, 2026 · Race Day: Sunday, November 1, 2026</div>
     <div class="stats">
-      <div class="stat"><div class="label">Workouts Done</div><div class="value" id="stat-done">0 <small>/ 126</small></div></div>
+      <div class="stat"><div class="label">Workouts Done</div><div class="value" id="stat-done">0 <small>/ 119</small></div></div>
       <div class="stat"><div class="label">Plan Complete</div><div class="value" id="stat-pct">0%</div></div>
-      <div class="stat"><div class="label">Long Run Miles</div><div class="value" id="stat-miles">0 <small>/ 218 mi</small></div></div>
+      <div class="stat"><div class="label">Long Run Miles</div><div class="value" id="stat-miles">0 <small>/ 208 mi</small></div></div>
       <div class="stat"><div class="label">Days to Race</div><div class="value" id="stat-countdown">—</div></div>
     </div>
     <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
@@ -232,18 +233,19 @@ const START_DATE = new Date(2026, 5, 28); // Sunday June 28, 2026
 const RACE_DATE = new Date(2026, 10, 1);  // Sunday November 1, 2026
 const STORAGE_KEY = "nycMarathonPlan2026";
 
-const longRuns = [6, 7, 8, 9, 10, 11, 12, 9, 14, 16, 12, 18, 20, 14, 22, 16, 10, 3];
-const easyRuns = [3, 3, 4, 4, 4, 5, 5, 4, 5, 6, 5, 6, 6, 5, 6, 5, 4, 2];
+const longRuns = [6, 7, 8, 9, 9, 10, 11, 12, 14, 16, 12, 18, 20, 14, 22, 16, 10, 3];
+const easyRuns = [3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 5, 6, 6, 5, 6, 5, 4, 2];
+const MISSED_WEEKS = [3];
 
 const trackWorkouts = [
   "6 × 400m @ 5K pace · 200m jog recovery",
   "8 × 400m @ 5K pace · 200m jog recovery",
   "4 × 800m @ 10K pace · 400m jog recovery",
   "5 × 800m @ 10K pace · 400m jog recovery",
+  "5 × 800m @ 10K pace · 400m jog recovery",
   "3 × 1 mile @ tempo pace · 3 min rest",
   "6 × 800m Yasso 800s · 400m jog recovery",
   "10 × 400m @ 5K pace · 200m jog recovery",
-  "4 mile tempo run (cutback week — keep it controlled)",
   "7 × 800m Yasso 800s · 400m jog recovery",
   "4 × 1 mile @ tempo pace · 3 min rest",
   "5 mile tempo run (cutback week)",
@@ -273,7 +275,8 @@ const armDays = [
 ];
 
 const weekLabels = {
-  8: "cutback", 11: "cutback", 14: "cutback",
+  4: "missed",
+  11: "cutback", 14: "cutback",
   15: "peak",
   16: "taper", 17: "taper", 18: "taper"
 };
@@ -320,8 +323,8 @@ function longRunNote(w, lr) {
 }
 
 const weeks = buildPlan();
-const totalWorkouts = 18 * 7;
-const totalLongMiles = longRuns.reduce((a, b) => a + b, 0);
+const totalWorkouts = (18 - MISSED_WEEKS.length) * 7;
+const totalLongMiles = longRuns.reduce((a, b, i) => a + (MISSED_WEEKS.includes(i) ? 0 : b), 0);
 
 let state = {};
 try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { state = {}; }
@@ -342,6 +345,7 @@ function render() {
   weeks.forEach((wk, wi) => {
     const weekEl = document.createElement("div");
     weekEl.className = "week";
+    const isMissed = MISSED_WEEKS.includes(wi);
     const label = weekLabels[wi + 1];
     const doneCount = wk.days.filter((_, di) => state[`w${wi}d${di}`]).length;
     const isCurrent = wi === currentWeekIdx;
@@ -356,9 +360,9 @@ function render() {
         <span class="week-dates">${fmtDate(wk.weekStart)} – ${fmtDate(weekEnd)}</span>
       </div>
       <div class="week-meta">
-        <span class="week-long">${wi === 17 ? "Shakeout" : "Long run"}: ${wk.longMiles} mi</span>
-        <span class="week-count">${doneCount === 7 ? "" : doneCount + "/7"}</span>
-        ${doneCount === 7 ? '<span class="week-check">✓ Complete</span>' : ""}
+        <span class="week-long">${isMissed ? "Skipped" : (wi === 17 ? "Shakeout" : "Long run") + ": " + wk.longMiles + " mi"}</span>
+        <span class="week-count">${isMissed || doneCount === 7 ? "" : doneCount + "/7"}</span>
+        ${!isMissed && doneCount === 7 ? '<span class="week-check">✓ Complete</span>' : ""}
         <span class="chev">▶</span>
       </div>`;
     header.addEventListener("click", () => weekEl.classList.toggle("open"));
@@ -366,6 +370,16 @@ function render() {
 
     const body = document.createElement("div");
     body.className = "week-body";
+    if (isMissed) {
+      const note = document.createElement("div");
+      note.className = "day";
+      note.style.cursor = "default";
+      note.innerHTML = `<div class="day-content"><div class="day-desc">Week skipped — the remaining schedule was adjusted (one cutback week removed) to keep the buildup on track for race day.</div></div>`;
+      body.appendChild(note);
+      weekEl.appendChild(body);
+      planEl.appendChild(weekEl);
+      return;
+    }
     wk.days.forEach((day, di) => {
       const date = addDays(wk.weekStart, di);
       const key = `w${wi}d${di}`;
@@ -420,6 +434,7 @@ function render() {
   // Stats
   let done = 0, milesDone = 0;
   weeks.forEach((wk, wi) => {
+    if (MISSED_WEEKS.includes(wi)) return;
     wk.days.forEach((_, di) => { if (state[`w${wi}d${di}`]) done++; });
     if (state[`w${wi}d6`]) milesDone += wk.longMiles;
   });
