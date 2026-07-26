@@ -208,7 +208,7 @@
     <div class="stats">
       <div class="stat"><div class="label">Workouts Done</div><div class="value" id="stat-done">0 <small>/ 119</small></div></div>
       <div class="stat"><div class="label">Plan Complete</div><div class="value" id="stat-pct">0%</div></div>
-      <div class="stat"><div class="label">Long Run Miles</div><div class="value" id="stat-miles">0 <small>/ 208 mi</small></div></div>
+      <div class="stat"><div class="label">Long Run Miles</div><div class="value" id="stat-miles">0 <small>/ 216 mi</small></div></div>
       <div class="stat"><div class="label">Days to Race</div><div class="value" id="stat-countdown">—</div></div>
     </div>
     <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
@@ -233,8 +233,8 @@ const START_DATE = new Date(2026, 5, 28); // Sunday June 28, 2026
 const RACE_DATE = new Date(2026, 10, 1);  // Sunday November 1, 2026
 const STORAGE_KEY = "nycMarathonPlan2026";
 
-const longRuns = [6, 7, 8, 9, 9, 10, 11, 12, 14, 16, 12, 18, 20, 14, 22, 16, 10, 3];
-const easyRuns = [3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 5, 6, 6, 5, 6, 5, 4, 2];
+const longRuns = [6, 7, 8, 9, 9, 10, 11, 12, 14, 16, 18, 20, 20, 14, 22, 16, 10, 3];
+const easyRuns = [3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 5, 6, 5, 4, 2];
 const MISSED_WEEKS = [3];
 
 const trackWorkouts = [
@@ -248,8 +248,8 @@ const trackWorkouts = [
   "10 × 400m @ 5K pace · 200m jog recovery",
   "7 × 800m Yasso 800s · 400m jog recovery",
   "4 × 1 mile @ tempo pace · 3 min rest",
-  "5 mile tempo run (cutback week)",
   "8 × 800m Yasso 800s · 400m jog recovery",
+  "9 × 800m Yasso 800s · 400m jog recovery",
   "5 × 1 mile @ goal marathon pace · 2 min rest",
   "6 × 400m @ 5K pace (cutback — stay sharp)",
   "10 × 800m Yasso 800s · 400m jog recovery",
@@ -276,7 +276,7 @@ const armDays = [
 
 const weekLabels = {
   4: "missed",
-  11: "cutback", 14: "cutback",
+  14: "cutback",
   15: "peak",
   16: "taper", 17: "taper", 18: "taper"
 };

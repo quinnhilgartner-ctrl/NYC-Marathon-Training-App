@@ -25,12 +25,12 @@ Open `index.html` in any browser — no install required. Click any workout to c
 | 2  | 7  | 8  | 12 | 14 | 14* |
 | 3  | 8  | 9  | 14 | 15 | **22 (peak)** |
 | 4  | — (missed) | 10 | 16 | 16 | 16 (taper) |
-| 5  | 9  | 11 | 12* | 17 | 10 (taper) |
-| 6  | 10 | 12 | 18 | 18 | 3 (shakeout) |
+| 5  | 9  | 11 | 18 | 17 | 10 (taper) |
+| 6  | 10 | 12 | 20 | 18 | 3 (shakeout) |
 
 \* cutback week
 
-Week 4 (Jul 19–25) was missed; the schedule was re-sequenced and one cutback week removed so the buildup still peaks at 22 mi in week 15 with a 3-week taper.
+Week 4 (Jul 19–25) was missed; the schedule was re-sequenced and the week 8 and week 11 cutbacks were removed so the buildup still peaks at 22 mi in week 15 with a 3-week taper.
 
 ## Features
 
